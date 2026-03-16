@@ -1,0 +1,34 @@
+{
+  "name": "@aily-project/lib-animated-gif",
+  "nickname": "GIF动画播放器",
+  "author": "bitbank2",
+  "description": "基于AnimatedGIF库的GIF动画播放器，支持从内存或SD卡播放GIF动画到TFT显示屏，通常需结合GFX库使用",
+  "version": "1.0.0",
+  "compatibility": {
+    "core": [
+      "arduino:avr",
+      "arduino:megaavr",
+      "arduino:samd",
+      "esp32:esp32",
+      "esp8266:esp8266",
+      "renesas_uno:unor4wifi",
+      "rp2040:rp2040"
+    ],
+    "voltage": [3.3, 5]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "GIF",
+    "animation",
+    "display",
+    "TFT",
+    "AnimatedGIF"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {},
+  "tested": false,
+  "tester": "",
+  "url": "https://github.com/bitbank2/AnimatedGIF"
+}
