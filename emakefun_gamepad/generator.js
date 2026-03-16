@@ -102,6 +102,7 @@ Arduino.forBlock['emakefun_gamepad_attach_model'] = function(block, generator) {
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return gamepadName + '.AttachModel(&' + modelName + ');\n';
 };
@@ -114,6 +115,7 @@ Arduino.forBlock['emakefun_gamepad_model_add_observer'] = function(block, genera
   const observerName = observerField ? observerField.getText() : 'publisher';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return modelName + '.AddObserver(&' + observerName + ');\n';
 };
@@ -125,17 +127,14 @@ Arduino.forBlock['emakefun_gamepad_button_pressed'] = function(block, generator)
   const button = block.getFieldValue('BUTTON');
   const handlerCode = generator.statementToCode(block, 'HANDLER') || '';
   const buttonType = ButtonTypeMap[button];
-  const callbackName = 'gamepad_button_pressed_' + modelName + '_' + button;
+  const tag = 'gamepad_button_pressed_' + modelName + '_' + button;
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
-  // 生成回调函数
-  const functionDef = 'void ' + callbackName + '() {\n' + handlerCode + '}\n';
-  generator.addFunction(callbackName, functionDef);
-
-  // 在loop中添加检查代码
-  const checkCode = 'if (' + modelName + '.ButtonPressed(' + buttonType + ')) {\n  ' + callbackName + '();\n}\n';
-  generator.addLoopBegin(checkCode, callbackName);
+  // 在loop中添加按键检查代码
+  const checkCode = 'if (' + modelName + '.ButtonPressed(' + buttonType + ')) {\n' + handlerCode + '}\n';
+  generator.addLoopBegin(tag, checkCode);
 
   return '';
 };
@@ -147,17 +146,14 @@ Arduino.forBlock['emakefun_gamepad_button_released'] = function(block, generator
   const button = block.getFieldValue('BUTTON');
   const handlerCode = generator.statementToCode(block, 'HANDLER') || '';
   const buttonType = ButtonTypeMap[button];
-  const callbackName = 'gamepad_button_released_' + modelName + '_' + button;
+  const tag = 'gamepad_button_released_' + modelName + '_' + button;
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
-  // 生成回调函数
-  const functionDef = 'void ' + callbackName + '() {\n' + handlerCode + '}\n';
-  generator.addFunction(callbackName, functionDef);
-
-  // 在loop中添加检查代码
-  const checkCode = 'if (' + modelName + '.ButtonReleased(' + buttonType + ')) {\n  ' + callbackName + '();\n}\n';
-  generator.addLoopBegin(checkCode, callbackName);
+  // 在loop中添加按键检查代码
+  const checkCode = 'if (' + modelName + '.ButtonReleased(' + buttonType + ')) {\n' + handlerCode + '}\n';
+  generator.addLoopBegin(tag, checkCode);
 
   return '';
 };
@@ -170,6 +166,7 @@ Arduino.forBlock['emakefun_gamepad_get_button_state'] = function(block, generato
   const buttonType = ButtonTypeMap[button];
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.GetButtonState(' + buttonType + ')', generator.ORDER_ATOMIC];
 };
@@ -180,6 +177,7 @@ Arduino.forBlock['emakefun_gamepad_get_joystick_x'] = function(block, generator)
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.GetJoystickCoordinate().x', generator.ORDER_ATOMIC];
 };
@@ -190,6 +188,7 @@ Arduino.forBlock['emakefun_gamepad_get_joystick_y'] = function(block, generator)
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.GetJoystickCoordinate().y', generator.ORDER_ATOMIC];
 };
@@ -200,6 +199,7 @@ Arduino.forBlock['emakefun_gamepad_get_gravity_x'] = function(block, generator) 
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.GetGravityAcceleration().x', generator.ORDER_ATOMIC];
 };
@@ -210,6 +210,7 @@ Arduino.forBlock['emakefun_gamepad_get_gravity_y'] = function(block, generator) 
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.GetGravityAcceleration().y', generator.ORDER_ATOMIC];
 };
@@ -220,6 +221,7 @@ Arduino.forBlock['emakefun_gamepad_get_gravity_z'] = function(block, generator) 
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.GetGravityAcceleration().z', generator.ORDER_ATOMIC];
 };
@@ -230,6 +232,7 @@ Arduino.forBlock['emakefun_gamepad_new_joystick_coordinate'] = function(block, g
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.NewJoystickCoordinate()', generator.ORDER_ATOMIC];
 };
@@ -240,6 +243,7 @@ Arduino.forBlock['emakefun_gamepad_new_gravity_acceleration'] = function(block, 
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return [modelName + '.NewGravityAcceleration()', generator.ORDER_ATOMIC];
 };
@@ -277,7 +281,7 @@ Arduino.forBlock['emakefun_gamepad_publisher_rf24_create'] = function(block, gen
 
   // 添加库和变量
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
-  generator.addLibrary('RF24', '#include <RF24.h>');
+  generator.addLibrary('emakefun_gamepad_publisher_rf24', '#include <gamepad_publisher_rf24.h>');
   generator.addVariable(varName, 'emakefun::GamepadPublisherRf24 ' + varName + '(' + cePin + ', ' + csPin + ');');
   registerVariableToBlockly(varName, 'GamepadPublisherRf24');
 
@@ -317,7 +321,7 @@ Arduino.forBlock['emakefun_gamepad_subscriber_rf24_create'] = function(block, ge
 
   // 添加库和变量
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
-  generator.addLibrary('RF24', '#include <RF24.h>');
+  generator.addLibrary('emakefun_gamepad_subscriber_rf24', '#include <gamepad_subscriber_rf24.h>');
   generator.addVariable(varName, 'emakefun::GamepadSubscriberRf24 ' + varName + '(' + cePin + ', ' + csPin + ');');
   registerVariableToBlockly(varName, 'GamepadSubscriberRf24');
 
@@ -335,6 +339,7 @@ Arduino.forBlock['emakefun_gamepad_subscriber_rf24_attach_model'] = function(blo
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return subscriberName + '.AttachModel(&' + modelName + ');\n';
 };
@@ -368,6 +373,7 @@ Arduino.forBlock['emakefun_gamepad_publisher_ble_create'] = function(block, gene
 
   // 添加库和变量
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addLibrary('emakefun_gamepad_publisher_ble', '#include <gamepad_publisher_ble.h>');
   generator.addVariable(varName, 'emakefun::GamepadPublisherBle ' + varName + ';');
   registerVariableToBlockly(varName, 'GamepadPublisherBle');
 
@@ -403,6 +409,7 @@ Arduino.forBlock['emakefun_gamepad_subscriber_ble_create'] = function(block, gen
 
   // 添加库和变量
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addLibrary('emakefun_gamepad_subscriber_ble', '#include <gamepad_subscriber_ble.h>');
   generator.addVariable(varName, 'emakefun::GamepadSubscriberBle ' + varName + ';');
   registerVariableToBlockly(varName, 'GamepadSubscriberBle');
 
@@ -420,6 +427,7 @@ Arduino.forBlock['emakefun_gamepad_subscriber_ble_attach_model'] = function(bloc
   const modelName = modelField ? modelField.getText() : 'gamepadModel';
 
   generator.addLibrary('emakefun_gamepad', '#include <gamepad.h>');
+  generator.addVariable(modelName, 'emakefun::GamepadModel ' + modelName + ';');
 
   return subscriberName + '.AttachModel(&' + modelName + ');\n';
 };

@@ -166,6 +166,8 @@
         "name": "HANDLER"
       }
     ],
+    "previousStatement": null,
+    "nextStatement": null,
     "colour": "#5CB85C",
     "tooltip": "按键按下事件",
     "icon": "fa-light fa-gamepad"
@@ -233,6 +235,8 @@
         "name": "HANDLER"
       }
     ],
+    "previousStatement": null,
+    "nextStatement": null,
     "colour": "#5CB85C",
     "tooltip": "按键释放事件",
     "icon": "fa-light fa-gamepad"
