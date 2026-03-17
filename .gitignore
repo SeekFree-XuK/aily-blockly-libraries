@@ -3,6 +3,7 @@ package-lock.json
 # /package.json
 .env
 .temp/
+.libs/
 
 **/src/
 

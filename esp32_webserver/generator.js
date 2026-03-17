@@ -11,6 +11,15 @@ function getVariableName(block, fieldName, defaultName) {
   return varField ? varField.getText() : defaultName;
 }
 
+// 生成安全的回调函数名
+function sanitizeCallbackName(varName, path, suffix) {
+  const cleanPath = path.replace(/^["']|["']$/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .replace(/_+/g, '_') || 'root';
+  return 'handle_' + varName + '_' + cleanPath + '_' + suffix;
+}
+
 // 创建WebServer对象
 Arduino.forBlock['esp32_webserver_create'] = function(block, generator) {
   // 设置变量重命名监听
@@ -81,8 +90,7 @@ Arduino.forBlock['esp32_webserver_on'] = function(block, generator) {
   const handlerCode = generator.statementToCode(block, 'HANDLER') || '';
   
   // 生成唯一的回调函数名
-  const safePath = path.replace(/[^a-zA-Z0-9]/g, '_').replace(/__+/g, '_');
-  const callbackName = 'webserver_handler_' + safePath + '_' + method.toLowerCase();
+  const callbackName = sanitizeCallbackName(varName, path, method.toLowerCase());
   
   // 创建回调函数
   const functionDef = 'void ' + callbackName + '() {\n' + handlerCode + '}\n';
@@ -107,7 +115,7 @@ Arduino.forBlock['esp32_webserver_on_not_found'] = function(block, generator) {
   const varName = getVariableName(block, 'VAR', 'server');
   const handlerCode = generator.statementToCode(block, 'HANDLER') || '';
   
-  const callbackName = 'webserver_notfound_handler';
+  const callbackName = 'handle_' + varName + '_notfound';
   
   // 创建回调函数
   const functionDef = 'void ' + callbackName + '() {\n' + handlerCode + '}\n';
@@ -363,4 +371,25 @@ Arduino.forBlock['esp32_webserver_content_length'] = function(block, generator) 
   ensureWebServerLib(generator);
   
   return [varName + '.clientContentLength()', generator.ORDER_ATOMIC];
+};
+
+// 提供静态文件服务
+Arduino.forBlock['esp32_webserver_serve_static'] = function(block, generator) {
+  const varName = getVariableName(block, 'VAR', 'server');
+  const uri = generator.valueToCode(block, 'URI', generator.ORDER_ATOMIC) || '"/"';
+  const fsType = block.getFieldValue('FS') || 'SPIFFS';
+  const path = generator.valueToCode(block, 'PATH', generator.ORDER_ATOMIC) || '"/"';
+  
+  ensureWebServerLib(generator);
+  
+  if (fsType === 'SPIFFS') {
+    generator.addLibrary('SPIFFS', '#include <SPIFFS.h>');
+  } else if (fsType === 'LittleFS') {
+    generator.addLibrary('LittleFS', '#include <LittleFS.h>');
+  } else if (fsType === 'SD') {
+    generator.addLibrary('FS', '#include <FS.h>');
+    generator.addLibrary('SD', '#include <SD.h>');
+  }
+  
+  return varName + '.serveStatic(' + uri + ', ' + fsType + ', ' + path + ');\n';
 };

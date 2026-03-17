@@ -673,5 +673,43 @@
     "colour": "#FF5722",
     "tooltip": "获取请求体的内容长度",
     "icon": "fa-solid fa-ruler"
+  },
+  {
+    "type": "esp32_webserver_serve_static",
+    "message0": "%1 提供静态文件 URL路径 %2 文件系统 %3 目录 %4",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "server",
+        "variableTypes": ["WebServer"],
+        "defaultType": "WebServer"
+      },
+      {
+        "type": "input_value",
+        "name": "URI",
+        "check": ["String"]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "FS",
+        "options": [
+          ["SPIFFS", "SPIFFS"],
+          ["LittleFS", "LittleFS"],
+          ["SD", "SD"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "PATH",
+        "check": ["String"]
+      }
+    ],
+    "inputsInline": false,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "#FF5722",
+    "tooltip": "将URL路径映射到文件系统目录，用于提供静态文件服务",
+    "icon": "fa-solid fa-folder-open"
   }
 ]

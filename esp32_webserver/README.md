@@ -1,53 +1,30 @@
-# ESP32 WebServer
+# ESP32 Web Server
 
-ESP32 Web服务器库，用于创建HTTP服务器并处理客户端请求。
+ESP32 Web服务器库，用于创建HTTP服务器，支持路由处理、请求响应和身份认证。
 
-## 库信息
-- **库名**: @aily-project/lib-esp32-webserver
-- **版本**: 1.0.0
-- **兼容**: ESP32全系列平台
+## Library Info
 
-## 块定义
+| Field | Value |
+|-------|-------|
+| Package | @aily-project/lib-esp32-webserver |
+| Version | 1.0.0 |
+| Author | Espressif Systems |
+| Source | https://github.com/espressif/arduino-esp32/tree/master/libraries/WebServer |
+| License | LGPL-2.1 |
 
-| 块类型 | 连接 | 字段/输入 | .abi格式 | 生成代码 |
-|--------|------|----------|----------|----------|
-| `esp32_webserver_create` | 语句块 | VAR(field_input), PORT(field_number) | `"fields":{"VAR":"server","PORT":80}` | `WebServer server(80);` |
-| `esp32_webserver_begin` | 语句块 | VAR(field_variable) | `"fields":{"VAR":{...}}` | `server.begin();` |
-| `esp32_webserver_stop` | 语句块 | VAR(field_variable) | `"fields":{"VAR":{...}}` | `server.stop();` |
-| `esp32_webserver_handle_client` | 语句块 | VAR(field_variable) | `"fields":{"VAR":{...}}` | `server.handleClient();` |
-| `esp32_webserver_on` | 语句块 | VAR(field_variable), METHOD(dropdown), PATH(input), HANDLER(statement) | 见下方示例 | `server.on("/", handler);` |
-| `esp32_webserver_on_not_found` | 语句块 | VAR(field_variable), HANDLER(statement) | 见下方示例 | `server.onNotFound(handler);` |
-| `esp32_webserver_send` | 语句块 | VAR(field_variable), CODE/TYPE/CONTENT(input) | 见下方示例 | `server.send(200, type, content);` |
-| `esp32_webserver_send_simple` | 语句块 | VAR(field_variable), CONTENT(input) | `"inputs":{...}` | `server.send(200, "text/plain", content);` |
-| `esp32_webserver_send_html` | 语句块 | VAR(field_variable), CONTENT(input) | `"inputs":{...}` | `server.send(200, "text/html", content);` |
-| `esp32_webserver_send_json` | 语句块 | VAR(field_variable), CONTENT(input) | `"inputs":{...}` | `server.send(200, "application/json", content);` |
-| `esp32_webserver_send_error` | 语句块 | VAR(field_variable), CODE(dropdown), MESSAGE(input) | `"fields":{"CODE":"404"}` | `server.send(404, "text/plain", msg);` |
-| `esp32_webserver_uri` | 值块 | VAR(field_variable) | `"fields":{"VAR":{...}}` | `server.uri()` |
-| `esp32_webserver_method` | 值块 | VAR(field_variable) | `"fields":{"VAR":{...}}` | `httpMethodToString(server.method())` |
-| `esp32_webserver_arg` | 值块 | VAR(field_variable), NAME(input) | `"inputs":{...}` | `server.arg("name")` |
-| `esp32_webserver_has_arg` | 值块 | VAR(field_variable), NAME(input) | `"inputs":{...}` | `server.hasArg("name")` |
-| `esp32_webserver_authenticate` | 值块 | VAR(field_variable), USERNAME/PASSWORD(input) | `"inputs":{...}` | `server.authenticate(user, pass)` |
-| `esp32_webserver_client_ip` | 值块 | VAR(field_variable) | `"fields":{"VAR":{...}}` | `server.client().remoteIP().toString()` |
+## Supported Boards
 
-## 字段类型映射
+ESP32全系列（ESP32、ESP32-S2、ESP32-S3、ESP32-C3、ESP32-C6、ESP32-H2）
 
-| 类型 | .abi格式 | 示例 |
-|------|----------|------|
-| field_input | 字符串 | `"VAR": "server"` |
-| field_variable | WebServer变量对象 | `"VAR": {"id": "server_id", "name": "server", "type": "WebServer"}` |
-| field_number | 数字 | `"PORT": 80` |
-| field_dropdown | 字符串 | `"METHOD": "HTTP_GET"` |
-| field_checkbox | 布尔值 | `"ENABLE": true` |
-| input_value | 块连接 | `"inputs": {"PATH": {"shadow": {...}}}` |
-| input_statement | 块连接 | `"inputs": {"HANDLER": {"block": {...}}}` |
+## Description
 
-## 连接规则
+基于ESP32 Arduino核心内置的WebServer库，提供轻量级HTTP/1.1服务器功能。支持GET/POST等多种HTTP方法路由注册、请求参数与请求头解析、多种格式响应发送（文本/HTML/JSON）、HTTP基本认证与摘要认证、CORS跨域配置、静态文件服务（SPIFFS/LittleFS/SD）等功能。
 
-- **语句块**: 有previousStatement/nextStatement，通过`next`字段连接
-- **值块**: 有output，连接到`inputs`中，无`next`字段
-- **路由处理块**: 包含内嵌的HANDLER语句块，用于处理请求
-- **特殊规则**: 
-  - `esp32_webserver_create` 使用 `field_input` 创建变量名
+## Quick Start
+
+1. 使用WiFi库先连接网络
+2. 创建WebServer对象并注册路由
+3. 在`setup()`中启动服务器，在`loop()`中调用`handleClient()`
   - 其他块使用 `field_variable` 引用已创建的WebServer对象
   - `handleClient()` 需要在loop中持续调用
 

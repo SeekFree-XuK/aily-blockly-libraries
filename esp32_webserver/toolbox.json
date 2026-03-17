@@ -47,6 +47,28 @@
       "type": "esp32_webserver_on_not_found"
     },
     {
+      "kind": "block",
+      "type": "esp32_webserver_serve_static",
+      "inputs": {
+        "URI": {
+          "shadow": {
+            "type": "text",
+            "fields": {
+              "TEXT": "/"
+            }
+          }
+        },
+        "PATH": {
+          "shadow": {
+            "type": "text",
+            "fields": {
+              "TEXT": "/"
+            }
+          }
+        }
+      }
+    },
+    {
       "kind": "label",
       "text": "发送响应"
     },

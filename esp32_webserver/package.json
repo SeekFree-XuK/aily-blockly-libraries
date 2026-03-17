@@ -2,7 +2,7 @@
   "name": "@aily-project/lib-esp32-webserver",
   "nickname": "ESP32 Web服务器",
   "description": "ESP32 Web服务器库，支持HTTP服务端、路由处理、请求响应和身份认证",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": {
     "core": [
       "esp32:esp32",
