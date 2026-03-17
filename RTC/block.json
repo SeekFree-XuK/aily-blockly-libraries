@@ -1,6 +1,7 @@
 [
   {
     "type": "rtc_init",
+    "icon": "fa-light fa-clock",
     "message0": "初始化RTC时钟 %1 芯片型号 %2",
     "args0": [
       {
@@ -27,6 +28,7 @@
   },
   {
     "type": "rtc_set_datetime",
+    "icon": "fa-light fa-clock",
     "message0": "%1 设置时间 年 %2 月 %3 日 %4 时 %5 分 %6 秒 %7",
     "args0": [
       {
@@ -74,6 +76,7 @@
   },
   {
     "type": "rtc_set_compile_datetime",
+    "icon": "fa-light fa-clock",
     "message0": "%1 设置为编译时间",
     "args0": [
       {
@@ -91,6 +94,7 @@
   },
   {
     "type": "rtc_get_datetime",
+    "icon": "fa-light fa-clock",
     "message0": "%1 获取当前时间",
     "args0": [
       {
@@ -107,6 +111,7 @@
   },
   {
     "type": "rtc_is_datetime_valid",
+    "icon": "fa-light fa-clock",
     "message0": "%1 时间是否有效",
     "args0": [
       {
@@ -123,6 +128,7 @@
   },
   {
     "type": "rtc_get_is_running",
+    "icon": "fa-light fa-clock",
     "message0": "%1 是否正在运行",
     "args0": [
       {
@@ -139,6 +145,7 @@
   },
   {
     "type": "rtc_set_is_running",
+    "icon": "fa-light fa-clock",
     "message0": "%1 设置运行状态 %2",
     "args0": [
       {
@@ -164,6 +171,7 @@
   },
   {
     "type": "rtc_get_year",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的年份",
     "args0": [
       {
@@ -178,6 +186,7 @@
   },
   {
     "type": "rtc_get_month",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的月份",
     "args0": [
       {
@@ -192,6 +201,7 @@
   },
   {
     "type": "rtc_get_day",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的日期",
     "args0": [
       {
@@ -206,6 +216,7 @@
   },
   {
     "type": "rtc_get_hour",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的小时",
     "args0": [
       {
@@ -220,6 +231,7 @@
   },
   {
     "type": "rtc_get_minute",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的分钟",
     "args0": [
       {
@@ -234,6 +246,7 @@
   },
   {
     "type": "rtc_get_second",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的秒数",
     "args0": [
       {
@@ -248,6 +261,7 @@
   },
   {
     "type": "rtc_get_day_of_week",
+    "icon": "fa-light fa-clock",
     "message0": "时间 %1 的星期",
     "args0": [
       {
@@ -262,6 +276,7 @@
   },
   {
     "type": "rtc_format_datetime",
+    "icon": "fa-light fa-clock",
     "message0": "格式化时间 %1 为文本",
     "args0": [
       {
@@ -276,6 +291,7 @@
   },
   {
     "type": "rtc_ds3231_get_temperature",
+    "icon": "fa-light fa-clock",
     "message0": "%1 读取温度 %2",
     "args0": [
       {
@@ -300,6 +316,7 @@
   },
   {
     "type": "rtc_ds1302_set_write_protect",
+    "icon": "fa-light fa-clock",
     "message0": "%1 写保护 %2",
     "args0": [
       {

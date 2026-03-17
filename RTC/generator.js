@@ -52,16 +52,23 @@ if (Blockly.Extensions && Blockly.Extensions.register) {
       if (this.getInput('SCL_PIN')) this.removeInput('SCL_PIN');
 
       if (chipType === 'DS1302') {
-        // DS1302 uses ThreeWire: DAT, CLK, RST
-        this.appendValueInput('DAT_PIN')
-            .setCheck(['Number'])
-            .appendField(datPinLabel);
-        this.appendValueInput('CLK_PIN')
-            .setCheck(['Number'])
-            .appendField(clkPinLabel);
-        this.appendValueInput('RST_PIN')
-            .setCheck(['Number'])
-            .appendField(rstPinLabel);
+        // DS1302 uses ThreeWire: DAT, CLK, RST - use dropdown pin selection
+        var digitalPins = (boardConfig.digitalPins || []);
+        var pinOptions = digitalPins.length > 0 ? digitalPins : [
+          ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'],
+          ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'],
+          ['10', '10'], ['11', '11'], ['12', '12'], ['13', '13']
+        ];
+        this.appendDummyInput('THREE_WIRE_PINS')
+            .appendField(datPinLabel)
+            .appendField(new Blockly.FieldDropdown(pinOptions), 'DAT_PIN')
+            .appendField(clkPinLabel)
+            .appendField(new Blockly.FieldDropdown(pinOptions), 'CLK_PIN')
+            .appendField(rstPinLabel)
+            .appendField(new Blockly.FieldDropdown(pinOptions), 'RST_PIN');
+        this.setFieldValue('4', 'DAT_PIN');
+        this.setFieldValue('5', 'CLK_PIN');
+        this.setFieldValue('2', 'RST_PIN');
       } else if (isESP32) {
         // I2C chips on ESP32: allow pin selection
         var digitalPins = (boardConfig.digitalPins || []);
@@ -136,9 +143,9 @@ Arduino.forBlock['rtc_init'] = function (block, generator) {
   let code = '';
 
   if (chipType === 'DS1302') {
-    const datPin = generator.valueToCode(block, 'DAT_PIN', generator.ORDER_ATOMIC) || '4';
-    const clkPin = generator.valueToCode(block, 'CLK_PIN', generator.ORDER_ATOMIC) || '5';
-    const rstPin = generator.valueToCode(block, 'RST_PIN', generator.ORDER_ATOMIC) || '2';
+    const datPin = block.getFieldValue('DAT_PIN') || '4';
+    const clkPin = block.getFieldValue('CLK_PIN') || '5';
+    const rstPin = block.getFieldValue('RST_PIN') || '2';
     const wireName = '_wire_' + varName;
 
     generator.addLibrary('ThreeWire', '#include <ThreeWire.h>');
