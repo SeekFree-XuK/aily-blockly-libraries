@@ -1,0 +1,15 @@
+{
+  "name": "@aily-project/lib-esp32-sd-mmc",
+  "nickname": "ESP32 SD_MMC",
+  "author": "ailyProject",
+  "description": "ESP32 SD_MMC(SDIO模式)读写SD卡,支持1位和4位模式",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": ["esp32:esp32", "esp32:esp32s3"],
+    "voltage": [3.3]
+  },
+  "keywords": ["aily", "blockly", "esp32", "sd", "mmc", "sdio", "sd卡"],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

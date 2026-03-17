@@ -1,0 +1,29 @@
+{
+  "name": "@aily-project/lib-esp32-asyncudp",
+  "nickname": "ESP32 异步UDP",
+  "author": "ailyProject",
+  "description": "ESP32异步UDP通信库，支持UDP监听、发送、广播和组播",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": [
+      "esp32:esp32",
+      "esp32:esp32c3",
+      "esp32:esp32s3",
+      "esp32:esp32c6",
+      "esp32:esp32h2"
+    ],
+    "voltage": [3.3]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "esp32",
+    "udp",
+    "async",
+    "multicast",
+    "网络"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

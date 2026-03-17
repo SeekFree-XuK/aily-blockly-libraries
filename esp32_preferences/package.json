@@ -1,0 +1,29 @@
+{
+  "name": "@aily-project/lib-esp32-preferences",
+  "nickname": "ESP32 Preferences存储",
+  "author": "ailyProject",
+  "description": "ESP32 NVS非易失性存储库，支持存取整数、浮点数、布尔值和字符串",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": [
+      "esp32:esp32",
+      "esp32:esp32c3",
+      "esp32:esp32s3",
+      "esp32:esp32c6",
+      "esp32:esp32h2"
+    ],
+    "voltage": [3.3]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "esp32",
+    "preferences",
+    "nvs",
+    "storage",
+    "存储"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

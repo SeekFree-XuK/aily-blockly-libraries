@@ -1,0 +1,28 @@
+{
+  "name": "@aily-project/lib-esp32-spiffs",
+  "nickname": "ESP32 SPIFFS文件系统",
+  "author": "ailyProject",
+  "description": "ESP32 SPIFFS闪存文件系统，支持文件读写、删除、重命名等操作",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": [
+      "esp32:esp32",
+      "esp32:esp32c3",
+      "esp32:esp32s3",
+      "esp32:esp32c6",
+      "esp32:esp32h2"
+    ],
+    "voltage": [3.3]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "esp32",
+    "spiffs",
+    "filesystem",
+    "文件系统"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

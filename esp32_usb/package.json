@@ -1,0 +1,30 @@
+{
+  "name": "@aily-project/lib-esp32-usb",
+  "nickname": "ESP32 USB功能",
+  "author": "ailyProject",
+  "description": "ESP32原生USB HID功能，支持键盘、鼠标、游戏手柄、媒体控制、系统控制和MIDI",
+  "version": "1.0.0",
+  "compatibility": {
+    "core": [
+      "esp32:esp32s2",
+      "esp32:esp32s3"
+    ],
+    "voltage": [3.3]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "esp32",
+    "usb",
+    "hid",
+    "keyboard",
+    "mouse",
+    "gamepad",
+    "midi",
+    "media",
+    "consumer"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

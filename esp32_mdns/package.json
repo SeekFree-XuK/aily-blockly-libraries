@@ -1,0 +1,15 @@
+{
+  "name": "@aily-project/lib-esp32-mdns",
+  "nickname": "ESP32 mDNS",
+  "author": "ailyProject",
+  "description": "ESP32 mDNS多播DNS服务，支持主机名解析和服务发现",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": ["esp32:esp32", "esp32:esp32c3", "esp32:esp32s3", "esp32:esp32c6", "esp32:esp32h2"],
+    "voltage": [3.3]
+  },
+  "keywords": ["aily", "blockly", "esp32", "mdns", "dns", "服务发现"],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

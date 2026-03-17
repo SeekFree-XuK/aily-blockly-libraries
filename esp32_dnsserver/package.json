@@ -1,0 +1,15 @@
+{
+  "name": "@aily-project/lib-esp32-dnsserver",
+  "nickname": "ESP32 DNS服务器",
+  "author": "ailyProject",
+  "description": "ESP32 DNS服务器，支持强制门户(Captive Portal)等应用",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": ["esp32:esp32", "esp32:esp32c3", "esp32:esp32s3", "esp32:esp32c6", "esp32:esp32h2"],
+    "voltage": [3.3]
+  },
+  "keywords": ["aily", "blockly", "esp32", "dns", "server", "captive", "portal"],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

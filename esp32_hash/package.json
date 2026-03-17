@@ -1,0 +1,29 @@
+{
+  "name": "@aily-project/lib-esp32-hash",
+  "nickname": "ESP32 哈希计算",
+  "author": "ailyProject",
+  "description": "ESP32哈希计算库，支持SHA1/SHA2/SHA3和PBKDF2密钥派生",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": [
+      "esp32:esp32",
+      "esp32:esp32c3",
+      "esp32:esp32s3",
+      "esp32:esp32c6",
+      "esp32:esp32h2"
+    ],
+    "voltage": [3.3]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "esp32",
+    "hash",
+    "sha",
+    "pbkdf2",
+    "加密"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

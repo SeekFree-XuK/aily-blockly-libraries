@@ -1,0 +1,15 @@
+{
+  "name": "@aily-project/lib-esp32-arduinoota",
+  "nickname": "ESP32 ArduinoOTA",
+  "author": "ailyProject",
+  "description": "ESP32 ArduinoOTA无线更新，支持WiFi网络OTA固件更新",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": ["esp32:esp32", "esp32:esp32c3", "esp32:esp32s3", "esp32:esp32c6", "esp32:esp32h2"],
+    "voltage": [3.3]
+  },
+  "keywords": ["aily", "blockly", "esp32", "ota", "update", "无线更新"],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@aily-project/lib-esp32-httpupdateserver",
+  "nickname": "ESP32 HTTP OTA更新",
+  "author": "ailyProject",
+  "description": "ESP32 HTTP OTA更新服务，通过Web页面上传固件进行OTA更新",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": [
+      "esp32:esp32",
+      "esp32:esp32c3",
+      "esp32:esp32s3",
+      "esp32:esp32c6",
+      "esp32:esp32h2"
+    ],
+    "voltage": [3.3]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "esp32",
+    "ota",
+    "http",
+    "update",
+    "固件更新"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

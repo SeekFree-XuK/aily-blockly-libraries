@@ -1,0 +1,15 @@
+{
+  "name": "@aily-project/lib-esp32-ethernet",
+  "nickname": "ESP32 以太网",
+  "author": "ailyProject",
+  "description": "ESP32以太网接口，支持内置EMAC和SPI以太网(W5500等)",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": ["esp32:esp32", "esp32:esp32s3"],
+    "voltage": [3.3]
+  },
+  "keywords": ["aily", "blockly", "esp32", "ethernet", "以太网", "网络"],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

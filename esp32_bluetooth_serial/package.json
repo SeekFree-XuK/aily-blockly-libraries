@@ -1,0 +1,15 @@
+{
+  "name": "@aily-project/lib-esp32-bluetooth-serial",
+  "nickname": "ESP32 蓝牙串口",
+  "author": "ailyProject",
+  "description": "ESP32经典蓝牙串口通信，支持数据收发、连接管理等",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": ["esp32:esp32", "esp32:esp32s3"],
+    "voltage": [3.3]
+  },
+  "keywords": ["aily", "blockly", "esp32", "bluetooth", "serial", "蓝牙", "串口"],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}
