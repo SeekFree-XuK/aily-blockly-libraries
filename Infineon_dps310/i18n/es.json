@@ -1,0 +1,51 @@
+{
+  "toolbox_name": "Sensor de presión DPS310",
+  "dps310_init": {
+    "message0": "Inicializar sensor DPS310 dirección I2C %1 usar %2",
+    "tooltip": "Inicializar el sensor de presión DPS310 a través de la interfaz I2C"
+  },
+  "dps310_correct_temp": {
+    "message0": "Corregir temperatura DPS310",
+    "tooltip": "Corregir el desfase de medición de temperatura DPS310, recomendado justo después de la inicialización"
+  },
+  "dps310_read_temperature": {
+    "message0": "Leer temperatura DPS310 (°C) sobremuestreo %1",
+    "tooltip": "Leer la temperatura DPS310 en Celsius. Mayor sobremuestreo da mejor precisión pero menor velocidad",
+    "args0": [
+      {
+        "options": [
+          ["128x (máxima precisión)", "7"],
+          ["64x", "6"],
+          ["32x", "5"],
+          ["16x", "4"],
+          ["8x", "3"],
+          ["4x", "2"],
+          ["2x", "1"],
+          ["1x (más rápido)", "0"]
+        ]
+      }
+    ]
+  },
+  "dps310_read_pressure": {
+    "message0": "Leer presión DPS310 (Pa) sobremuestreo %1",
+    "tooltip": "Leer la presión DPS310 en Pascal. Mayor sobremuestreo da mejor precisión pero menor velocidad",
+    "args0": [
+      {
+        "options": [
+          ["128x (máxima precisión)", "7"],
+          ["64x", "6"],
+          ["32x", "5"],
+          ["16x", "4"],
+          ["8x", "3"],
+          ["4x", "2"],
+          ["2x", "1"],
+          ["1x (más rápido)", "0"]
+        ]
+      }
+    ]
+  },
+  "dps310_read_altitude": {
+    "message0": "Leer altitud DPS310 (m) presión al nivel del mar %1 hPa",
+    "tooltip": "Calcular la altitud a partir de la presión, requiere la presión al nivel del mar local (predeterminado 1013,25 hPa)"
+  }
+}

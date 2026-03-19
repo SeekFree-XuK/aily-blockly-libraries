@@ -1,0 +1,29 @@
+{
+  "name": "@aily-project/lib-seeed-dps310",
+  "nickname": "DPS310气压传感器",
+  "author": "Infineon",
+  "description": "用于DPS310高精度气压传感器，通过I2C接口实现温度和气压测量、海拔高度计算，测量范围300-1200hPa，适用于Arduino、ESP32等开发板",
+  "version": "0.0.1",
+  "compatibility": {
+    "core": [
+      "arduino:avr",
+      "esp32:esp32",
+      "esp32:esp32c3",
+      "esp32:esp32s3"
+    ],
+    "voltage": [3.3, 5]
+  },
+  "keywords": [
+    "aily",
+    "blockly",
+    "传感器",
+    "气压",
+    "温度",
+    "高度",
+    "DPS310",
+    "Seeed"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}
