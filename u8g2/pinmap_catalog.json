@@ -11,6 +11,21 @@
       "defaultVariant": "i2c",
       "variants": [
         {
+          "id": "gover_i2c",
+          "name": "Gover OLED Display 0.96\" (I2C)",
+          "fullId": "lib-u8g2:oled:gover_i2c",
+          "pinmapFile": "pinmaps/gover_oled_i2c.json",
+          "protocol": "i2c",
+          "status": "available",
+          "isDefault": false,
+          "previewPins": [
+            "GND",
+            "VCC",
+            "SDA",
+            "SCL"
+          ]
+        },
+        {
           "id": "i2c",
           "name": "I2C接口",
           "fullId": "lib-u8g2:oled:i2c",
@@ -18,7 +33,12 @@
           "protocol": "i2c",
           "status": "available",
           "isDefault": true,
-          "previewPins": ["VCC", "GND", "SDA", "SCL"]
+          "previewPins": [
+            "VCC",
+            "GND",
+            "SDA",
+            "SCL"
+          ]
         },
         {
           "id": "spi",
@@ -28,7 +48,15 @@
           "protocol": "spi",
           "status": "available",
           "isDefault": false,
-          "previewPins": ["VCC", "GND", "CS", "DC", "RST", "SCK", "MOSI"]
+          "previewPins": [
+            "VCC",
+            "GND",
+            "CS",
+            "DC",
+            "RST",
+            "SCK",
+            "MOSI"
+          ]
         }
       ]
     }
