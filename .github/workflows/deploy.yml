@@ -193,6 +193,21 @@ jobs:
               sleep_seconds=$((sleep_seconds * 2))
             done
           }
+          export -f retry_with_backoff
+
+          mark_manual_publish() {
+            local package_name="$1"
+            local package_version="$2"
+            local package_dir="$3"
+
+            echo "::warning::Default registry publish timed out after 10 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
+            {
+              echo "### Manual publish required"
+              echo "- Package: ${package_name}@${package_version}"
+              echo "- Directory: ${package_dir}"
+              echo "- Reason: publish to default registry timed out after 10 minutes"
+            } >> "$GITHUB_STEP_SUMMARY"
+          }
 
           cd ${{ matrix.package }}
           # 确保清理掉可能残留的 .npmrc
@@ -211,7 +226,15 @@ jobs:
           fi
           
           # 发布
-          retry_with_backoff 5 5 npm publish --access public
+          timeout 10m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
+          STATUS=$?
+          if [ "$STATUS" -ne 0 ]; then
+            if [ "$STATUS" -eq 124 ]; then
+              mark_manual_publish "$PACKAGE_NAME" "$CURRENT_VERSION" "${{ matrix.package }}"
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
   
   build-and-publish-all:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/deploy' }}
@@ -372,6 +395,19 @@ jobs:
               sleep_seconds=$((sleep_seconds * 2))
             done
           }
+          export -f retry_with_backoff
+
+          MANUAL_LOG="$RUNNER_TEMP/manual-default-publish.txt"
+          : > "$MANUAL_LOG"
+
+          mark_manual_publish() {
+            local package_name="$1"
+            local package_version="$2"
+            local package_dir="$3"
+
+            echo "::warning::Default registry publish timed out after 10 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
+            printf '%s\n' "${package_name}@${package_version} | ${package_dir} | publish to default registry timed out after 10 minutes" >> "$MANUAL_LOG"
+          }
 
           publish_default_one() {
             local dir="$1"
@@ -388,7 +424,15 @@ jobs:
                 sleep 5
               fi
 
-              retry_with_backoff 5 5 npm publish --access public
+              timeout 10m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
+              STATUS=$?
+              if [ "$STATUS" -ne 0 ]; then
+                if [ "$STATUS" -eq 124 ]; then
+                  mark_manual_publish "$PACKAGE_NAME" "$CURRENT_VERSION" "$dir"
+                  exit 0
+                fi
+                exit "$STATUS"
+              fi
             )
           }
 
@@ -437,6 +481,15 @@ jobs:
           if [ "$FAIL" -ne 0 ]; then
             echo "One or more package publishes failed on default registry"
             exit 1
+          fi
+
+          if [ -s "$MANUAL_LOG" ]; then
+            {
+              echo "### Manual publish required"
+              while IFS= read -r line; do
+                echo "- $line"
+              done < "$MANUAL_LOG"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
   genJson-and-upload:
