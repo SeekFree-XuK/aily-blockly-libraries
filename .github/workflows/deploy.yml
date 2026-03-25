@@ -200,12 +200,12 @@ jobs:
             local package_version="$2"
             local package_dir="$3"
 
-            echo "::warning::Default registry publish timed out after 10 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
+            echo "::warning::Default registry publish timed out after 5 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
             {
               echo "### Manual publish required"
               echo "- Package: ${package_name}@${package_version}"
               echo "- Directory: ${package_dir}"
-              echo "- Reason: publish to default registry timed out after 10 minutes"
+              echo "- Reason: publish to default registry timed out after 5 minutes"
             } >> "$GITHUB_STEP_SUMMARY"
           }
 
@@ -226,8 +226,10 @@ jobs:
           fi
           
           # 发布
-          timeout 10m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
+          set +e
+          timeout 5m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
           STATUS=$?
+          set -e
           if [ "$STATUS" -ne 0 ]; then
             if [ "$STATUS" -eq 124 ]; then
               mark_manual_publish "$PACKAGE_NAME" "$CURRENT_VERSION" "${{ matrix.package }}"
@@ -405,8 +407,8 @@ jobs:
             local package_version="$2"
             local package_dir="$3"
 
-            echo "::warning::Default registry publish timed out after 10 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
-            printf '%s\n' "${package_name}@${package_version} | ${package_dir} | publish to default registry timed out after 10 minutes" >> "$MANUAL_LOG"
+            echo "::warning::Default registry publish timed out after 5 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
+            printf '%s\n' "${package_name}@${package_version} | ${package_dir} | publish to default registry timed out after 5 minutes" >> "$MANUAL_LOG"
           }
 
           publish_default_one() {
@@ -424,8 +426,10 @@ jobs:
                 sleep 5
               fi
 
-              timeout 10m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
+              set +e
+              timeout 5m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
               STATUS=$?
+              set -e
               if [ "$STATUS" -ne 0 ]; then
                 if [ "$STATUS" -eq 124 ]; then
                   mark_manual_publish "$PACKAGE_NAME" "$CURRENT_VERSION" "$dir"
