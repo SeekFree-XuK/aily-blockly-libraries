@@ -1,5 +1,6 @@
 {
   "toolbox_name": "FreeRTOS",
+  "toolbox_categories": ["任務管理", "隊列通訊", "信號量同步", "中斷與通知", "系統資訊"],
   "freertos_task_create": {
     "message0": "创建任务 函数名 %1 栈大小 %2 优先级 %3",
     "tooltip": "创建一个FreeRTOS任务"

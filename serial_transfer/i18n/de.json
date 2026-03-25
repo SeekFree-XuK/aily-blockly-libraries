@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["Serielle Übertragung", "I2C-Übertragung", "SPI-Übertragung"],
   "serial_transfer_init": {
     "message0": "SerialTransfer %1 initialisieren Port %2 Baudrate %3",
     "tooltip": "SerialTransfer-Objekt initialisieren, seriellen Port und Baudrate einstellen"

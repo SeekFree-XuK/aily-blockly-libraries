@@ -1,5 +1,6 @@
 {
-  "toolbox_name": "小智AI",
+  "toolbox_name": "XiaoZhi AI",
+  "toolbox_categories": ["Inicialización", "Pantalla", "Predefinido", "Personalizado", "Control", "Botón IA", "Estado y activación", "Emoji y chat", "MCP"],
   "esp32_task": {
     "message0": "ESP32 task%1 Core%2 空间分配%3",
     "tooltip": "设置线程在哪个内核上运行",

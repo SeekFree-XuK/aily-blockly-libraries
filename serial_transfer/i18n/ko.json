@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["시리얼 전송", "I2C 전송", "SPI 전송"],
   "serial_transfer_init": {
     "message0": "SerialTransfer %1 초기화 포트 %2 보레이트 %3",
     "tooltip": "SerialTransfer 객체를 초기화하고 시리얼 포트와 보레이트를 설정합니다"

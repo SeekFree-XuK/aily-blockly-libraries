@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["نقل تسلسلي", "نقل I2C", "نقل SPI"],
   "serial_transfer_init": {
     "message0": "تهيئة SerialTransfer %1 المنفذ %2 معدل البود %3",
     "tooltip": "تهيئة كائن SerialTransfer مع المنفذ التسلسلي ومعدل البود"

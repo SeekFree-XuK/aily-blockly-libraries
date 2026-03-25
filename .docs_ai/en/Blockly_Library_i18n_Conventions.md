@@ -35,6 +35,7 @@ lib-xxx/
 ```json
 {
   "toolbox_name": "Toolbox display name",
+  "toolbox_categories": ["Sub-cat 1", "Sub-cat 2"],  // Optional — translated sub-category names, in order
   "block_type_1": {
     "message0": "Block display text %1 param %2",
     "tooltip": "Block tooltip text",
@@ -55,7 +56,111 @@ lib-xxx/
 
 ---
 
-## 3. Static Block Translations
+## 3. Toolbox Sub-category Translations
+
+When a library's `toolbox.json` contains nested categories (sub-categories), their `name` fields must also be translated via the `toolbox_categories` key.
+
+### 3.1 How It Works
+
+- `toolbox_categories` is an **array** of translated sub-category names.
+- The order of elements must **exactly match** the order of nested categories as they appear in `toolbox.json` (depth-first traversal).
+- The runtime framework recursively walks the toolbox tree and replaces each sub-category `name` with the corresponding element from the array, by index.
+- This works for **any nesting depth** (2-level, 3-level, etc.).
+
+### 3.2 Example: Two-level Toolbox
+
+**toolbox.json:**
+```json
+{
+  "kind": "category",
+  "name": "SerialTransfer",
+  "contents": [
+    {
+      "kind": "category",
+      "name": "串口传输",
+      "contents": [...]
+    },
+    {
+      "kind": "category",
+      "name": "I2C 传输",
+      "contents": [...]
+    },
+    {
+      "kind": "category",
+      "name": "SPI 传输",
+      "contents": [...]
+    }
+  ]
+}
+```
+
+**en.json:**
+```json
+{
+  "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["Serial Transfer", "I2C Transfer", "SPI Transfer"]
+}
+```
+
+**zh_cn.json:**
+```json
+{
+  "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["串口传输", "I2C 传输", "SPI 传输"]
+}
+```
+
+**ja.json:**
+```json
+{
+  "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["シリアル転送", "I2C 転送", "SPI 転送"]
+}
+```
+
+### 3.3 Example: Three-level Toolbox
+
+For toolboxes with deeper nesting, the array follows **depth-first order**. Nested sub-categories appear immediately after their parent category:
+
+**toolbox.json (excerpt):**
+```json
+{
+  "kind": "category",
+  "name": "小智AI",
+  "contents": [
+    { "kind": "category", "name": "初始化", "contents": [...] },
+    {
+      "kind": "category",
+      "name": "屏显示",
+      "contents": [
+        { "kind": "category", "name": "预内置", "contents": [...] },
+        { "kind": "category", "name": "自定义", "contents": [...] }
+      ]
+    },
+    { "kind": "category", "name": "控制", "contents": [...] }
+  ]
+}
+```
+
+**en.json:**
+```json
+{
+  "toolbox_name": "XiaoZhi AI",
+  "toolbox_categories": ["Initialize", "Display", "Built-in", "Custom", "Control"]
+}
+```
+
+The order is: 初始化 → 屏显示 → 预内置 → 自定义 → 控制 (depth-first).
+
+### 3.4 When to Use `toolbox_categories`
+
+- **Required** when `toolbox.json` contains nested `"kind": "category"` entries.
+- **Omit** when the toolbox has only a single root category with no sub-categories (most libraries).
+- The array length must match the total number of nested sub-categories in `toolbox.json`.
+
+---
+
+## 4. Static Block Translations
 
 ### 3.1 Basic Blocks
 
@@ -97,11 +202,11 @@ Dropdown options are translated via the `args0` array using the `options` field:
 
 ---
 
-## 4. Dynamic Extension Translations
+## 5. Dynamic Extension Translations
 
 Dynamic extensions come in two types:
 
-### 4.1 Dynamic Tooltip Extension
+### 5.1 Dynamic Tooltip Extension
 
 Used when the tooltip needs to change dynamically based on a dropdown selection.
 
@@ -157,7 +262,7 @@ Blockly.Extensions.register('math_single_tooltip', function() {
 });
 ```
 
-### 4.2 Dynamic UI Extension
+### 5.2 Dynamic UI Extension
 
 Used when a block's inputs or fields need to change dynamically based on a selection.
 
@@ -208,7 +313,7 @@ Blockly.Extensions.register('dht_init_dynamic', function () {
 
 ---
 
-## 5. Accessing i18n at Runtime
+## 6. Accessing i18n at Runtime
 
 **Global object path:**
 ```javascript
@@ -229,9 +334,9 @@ const label = extI18n.key || 'default';
 
 ---
 
-## 6. Translation Reference
+## 7. Translation Reference
 
-### 6.1 Common UI Element Translations
+### 7.1 Common UI Element Translations
 
 | English | Chinese | Japanese | Korean | German | French |
 |---------|---------|----------|--------|--------|--------|
@@ -244,7 +349,7 @@ const label = extI18n.key || 'default';
 | Humidity | 湿度 | 湿度 | 습도 | Feuchtigkeit | Humidité |
 | Sensor | 传感器 | センサー | 센서 | Sensor | Capteur |
 
-### 6.2 Math Operation Translations
+### 7.2 Math Operation Translations
 
 | Operation | English | Chinese | Japanese | Korean |
 |-----------|---------|---------|----------|--------|
@@ -257,26 +362,28 @@ const label = extI18n.key || 'default';
 
 ---
 
-## 7. Implementation Checklist
+## 8. Implementation Checklist
 
 When adding i18n support to a library, follow these steps:
 
 - [ ] 1. Create the `i18n` folder
 - [ ] 2. Create all 11 language JSON files
 - [ ] 3. Add `toolbox_name` translations
-- [ ] 4. Add `message0` and `tooltip` for every block
-- [ ] 5. Add `args0.options` translations for all dropdowns
-- [ ] 6. Identify all `extensions` references in `block.json`
-- [ ] 7. Add `extensions.xxx` translations for each extension
-- [ ] 8. Update extension code in `generator.js` to read from `window.__BLOCKLY_LIB_I18N__`
-- [ ] 9. Ensure all hardcoded strings have fallback default values
+- [ ] 4. If toolbox has sub-categories, add `toolbox_categories` array (order must match depth-first traversal of `toolbox.json`)
+- [ ] 5. Add `message0` and `tooltip` for every block
+- [ ] 6. Add `args0.options` translations for all dropdowns
+- [ ] 7. Identify all `extensions` references in `block.json`
+- [ ] 8. Add `extensions.xxx` translations for each extension
+- [ ] 9. Update extension code in `generator.js` to read from `window.__BLOCKLY_LIB_I18N__`
+- [ ] 10. Ensure all hardcoded strings have fallback default values
 
 ---
 
-## 8. Important Notes
+## 9. Important Notes
 
 1. **Always provide fallbacks**: All i18n accesses must include a default value to prevent errors when translations are missing
 2. **Keep key names consistent**: Keys in extensions must match exactly what is used in the code
 3. **Unregister before registering**: Use `isRegistered` to check and `unregister` before registering an extension
 4. **Package name must match**: The key in `window.__BLOCKLY_LIB_I18N__` must exactly match the `name` field in `package.json`
 5. **Do not use `Blockly.Msg`**: This project does not use `Blockly.Msg[key]`; always use `window.__BLOCKLY_LIB_I18N__` instead
+6. **Sub-category order must match toolbox.json**: The `toolbox_categories` array elements must follow the exact depth-first order of nested categories in `toolbox.json`. The runtime replaces sub-category names by index

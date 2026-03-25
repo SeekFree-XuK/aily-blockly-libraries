@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["シリアル転送", "I2C 転送", "SPI 転送"],
   "serial_transfer_init": {
     "message0": "SerialTransfer %1 を初期化 ポート %2 ボーレート %3",
     "tooltip": "SerialTransferオブジェクトを初期化し、シリアルポートとボーレートを設定します"

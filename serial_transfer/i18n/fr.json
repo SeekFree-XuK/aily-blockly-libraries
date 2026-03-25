@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["Transfert série", "Transfert I2C", "Transfert SPI"],
   "serial_transfer_init": {
     "message0": "Initialiser SerialTransfer %1 port %2 débit %3",
     "tooltip": "Initialiser l'objet SerialTransfer avec le port série et le débit en bauds"

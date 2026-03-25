@@ -1,5 +1,6 @@
 {
-  "toolbox_name": "小智AI",
+  "toolbox_name": "XiaoZhi AI",
+  "toolbox_categories": ["Инициализация", "Дисплей", "Встроенные", "Пользовательские", "Управление", "Кнопка AI", "Статус и активация", "Эмодзи и чат", "MCP"],
   "esp32_task": {
     "message0": "ESP32 task%1 Core%2 空间分配%3",
     "tooltip": "设置线程在哪个内核上运行",

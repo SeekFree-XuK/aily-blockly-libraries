@@ -1,5 +1,6 @@
 {
   "toolbox_name": "FreeRTOS",
+  "toolbox_categories": ["Gestão de tarefas", "Comunicação por fila", "Sincronização por semáforo", "Interrupções e notificações", "Informações do sistema"],
   "freertos_task_create": {
     "message0": "创建任务 函数名 %1 栈大小 %2 优先级 %3",
     "tooltip": "创建一个FreeRTOS任务"

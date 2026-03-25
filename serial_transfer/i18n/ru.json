@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["Последовательная передача", "Передача I2C", "Передача SPI"],
   "serial_transfer_init": {
     "message0": "Инициализировать SerialTransfer %1 порт %2 скорость %3",
     "tooltip": "Инициализировать объект SerialTransfer с последовательным портом и скоростью передачи"

@@ -1,5 +1,6 @@
 {
   "toolbox_name": "FreeRTOS",
+  "toolbox_categories": ["태스크 관리", "큐 통신", "세마포어 동기화", "인터럽트 및 알림", "시스템 정보"],
   "freertos_task_create": {
     "message0": "创建任务 函数名 %1 栈大小 %2 优先级 %3",
     "tooltip": "创建一个FreeRTOS任务"

@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["串口傳輸", "I2C 傳輸", "SPI 傳輸"],
   "serial_transfer_init": {
     "message0": "初始化 SerialTransfer %1 串口 %2 波特率 %3",
     "tooltip": "初始化SerialTransfer物件，設定串口和波特率"

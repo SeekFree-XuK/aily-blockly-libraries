@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["Transferencia serie", "Transferencia I2C", "Transferencia SPI"],
   "serial_transfer_init": {
     "message0": "Inicializar SerialTransfer %1 puerto %2 baudios %3",
     "tooltip": "Inicializar el objeto SerialTransfer con puerto serie y velocidad en baudios"

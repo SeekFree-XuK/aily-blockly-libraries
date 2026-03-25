@@ -112,6 +112,32 @@ function getToolboxName(toolboxJson) {
   return null;
 }
 
+function getToolboxCategories(toolboxJson) {
+  if (!toolboxJson) return null;
+  
+  const categories = [];
+  
+  // Recursively collect sub-category names in depth-first order
+  function collectCategories(contents) {
+    if (!Array.isArray(contents)) return;
+    for (const item of contents) {
+      if (item.kind === 'category' && item.name) {
+        categories.push(item.name);
+        if (item.contents) {
+          collectCategories(item.contents);
+        }
+      }
+    }
+  }
+  
+  // Start from root contents (skip root category itself)
+  if (toolboxJson.contents) {
+    collectCategories(toolboxJson.contents);
+  }
+  
+  return categories.length > 0 ? categories : null;
+}
+
 function findExtensionsInBlocks(blocks) {
   const extensions = new Set();
   if (!Array.isArray(blocks)) return extensions;
@@ -151,7 +177,13 @@ function generateI18nForLibrary(libDir) {
     i18nData.toolbox_name = toolboxName;
   }
   
-  // 2. Extract block translations
+  // 2. Extract toolbox sub-category names
+  const toolboxCategories = getToolboxCategories(toolbox);
+  if (toolboxCategories) {
+    i18nData.toolbox_categories = toolboxCategories;
+  }
+  
+  // 3. Extract block translations
   if (blocks && Array.isArray(blocks)) {
     for (const block of blocks) {
       if (block.type) {

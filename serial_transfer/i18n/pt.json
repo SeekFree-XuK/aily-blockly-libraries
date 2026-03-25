@@ -1,5 +1,6 @@
 {
   "toolbox_name": "SerialTransfer",
+  "toolbox_categories": ["Transferência serial", "Transferência I2C", "Transferência SPI"],
   "serial_transfer_init": {
     "message0": "Inicializar SerialTransfer %1 porta %2 taxa %3",
     "tooltip": "Inicializar o objeto SerialTransfer com porta serial e taxa de transmissão"

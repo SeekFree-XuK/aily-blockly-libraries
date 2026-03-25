@@ -1,5 +1,6 @@
 {
   "toolbox_name": "小智AI",
+  "toolbox_categories": ["初始化", "屏显示", "预内置", "自定义", "控制", "AI按钮", "状态与激活", "表情与聊天", "MCP"],
   "esp32_task": {
     "message0": "ESP32 task%1 Core%2 空间分配%3",
     "tooltip": "设置线程在哪个内核上运行",
