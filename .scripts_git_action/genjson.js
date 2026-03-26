@@ -13,7 +13,8 @@ const defaultKeysToExtract = [
   'tested',
   'icon',
   'example',
-  'url'
+  'url',
+  'tags'
 ];
 
 // 多语言字段后缀
@@ -55,7 +56,7 @@ function filterPackageJson(packageJson, keysToExtract) {
 
 async function main() {
   try {
-    // 获取库根目录路径（脚本位于 scripts_git_action/ 子目录中）
+    // 获取库根目录路径（脚本位于 .scripts_git_action/ 子目录中）
     const currentDir = path.join(__dirname, '..');
 
     // 设置要提取的键，可以根据需要修改这个数组
