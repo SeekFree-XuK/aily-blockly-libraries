@@ -11,15 +11,17 @@
 //   ⑦ 唯一的事件监听器（BLOCK_DELETE / BLOCK_CREATE / FINISHED_LOADING）
 //   ⑧ 代码生成器（含 monitorKey 变量注册，参考 lib-dht 模式）
 
-// 防止重复加载
+// 防止重复加载（仅保护扩展注册和块定义，事件监听器在外部重新绑定）
 if (typeof window !== 'undefined' && window.__customFunctionLibLoaded__ &&
     typeof Blockly !== 'undefined' && Blockly.Extensions.isRegistered('function_params_mutator')) {
-  // 已加载过，跳过
+  // 已加载过，跳过扩展注册 / 块定义 / 代码生成器
 } else {
 
 if (typeof window !== 'undefined') {
   window.__customFunctionLibLoaded__ = true;
-  // 每次加载清空 registry，由 FINISHED_LOADING 重新注册
+}
+// 每次加载清空 registry，由 FINISHED_LOADING 重新注册
+if (typeof window !== 'undefined') {
   window.customFunctionRegistry = {};
 }
 
@@ -35,7 +37,7 @@ function _getFuncExtI18n(extName) {
   return (ext && ext[extName]) || {};
 }
 function _getBlocklyMsgI18n() { return _getFuncExtI18n('blockly_msg'); }
-function _getCallI18n() { return _getFuncExtI18n('custom_function_call'); }
+function _getCallI18n() { return _getFuncExtI18n('custom_function_call_advance'); }
 function _getCallRetI18n() { return _getFuncExtI18n('custom_function_call_return'); }
 function _getParamsMutI18n() { return _getFuncExtI18n('function_params_mutator'); }
 
@@ -227,19 +229,42 @@ function cleanupOrphanFunctionVariables(workspace) {
   if (!workspace || typeof workspace.getAllVariables !== 'function') return;
   var defs = workspace.getBlocksByType('custom_function_def', false);
   var validFuncVarIds = new Set();
+  var validFuncNames = new Set();
   for (var i = 0; i < defs.length; i++) {
     ensureFunctionVariableMetadata(defs[i]);
     if (defs[i].funcVarId_) {
       validFuncVarIds.add(defs[i].funcVarId_);
     }
+    var fname = defs[i].getFieldValue('FUNC_NAME') || defs[i]._funcLastName;
+    if (fname) validFuncNames.add(fname);
   }
   var allVariables = workspace.getAllVariables();
   for (var vi = 0; vi < allVariables.length; vi++) {
     var variable = allVariables[vi];
-    if (variable.type === 'FUNC' && !validFuncVarIds.has(variable.getId())) {
-      workspace.deleteVariableById(variable.getId());
+    // 只删除 ID 和名称都不匹配的真正孤儿变量
+    // 使用 VariableMap.deleteVariable 静默删除，不弹确认框、不销毁引用块
+    if (variable.type === 'FUNC' && !validFuncVarIds.has(variable.getId()) && !validFuncNames.has(variable.name)) {
+      try {
+        workspace.getVariableMap().deleteVariable(variable);
+      } catch(e) { /* ignore - variable might already be gone */ }
     }
   }
+}
+
+function rebindCallBlockFuncField(block) {
+  if (!block || !block.workspace || block.workspace.isFlyout) return;
+  var funcField = block.getField('FUNC_NAME');
+  if (!funcField || typeof funcField.setValue !== 'function') return;
+  var targetVarId = block._funcVarIdForLoad
+    || block.getFieldValue('FUNC_NAME');
+  if (!targetVarId || !block.workspace.getVariableById) return;
+  var targetVar = block.workspace.getVariableById(targetVarId);
+  if (!targetVar) return;
+  var currentVar = typeof funcField.getVariable === 'function' ? funcField.getVariable() : null;
+  if (!currentVar || currentVar.getId() !== targetVarId) {
+    funcField.setValue(targetVarId);
+  }
+  block._funcVarIdForLoad = targetVarId;
 }
 
 // ==================== ② Registry ====================
@@ -286,7 +311,7 @@ function syncCallBlocksParams(funcName) {
   var nextSignature = funcDef
     ? getFunctionSignature(funcDef.params, funcDef.returnType)
     : 'NO_FUNC';
-  var blocks = workspace.getBlocksByType('custom_function_call', false)
+  var blocks = workspace.getBlocksByType('custom_function_call_advance', false)
     .concat(workspace.getBlocksByType('custom_function_call_return', false));
   for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
@@ -381,7 +406,7 @@ function syncFunctionCallsToToolbox() {
     var fd = registry[fn];
     var pc = fd.params ? fd.params.length : 0;
     var pInfo = fd.params ? fd.params.map(function(p) { return p.name + ':' + p.type; }) : [];
-    expected.push({ t: 'custom_function_call', f: fn, p: pc, i: pInfo });
+    expected.push({ t: 'custom_function_call_advance', f: fn, p: pc, i: pInfo });
     if (fd.returnType && fd.returnType !== 'void') {
       expected.push({ t: 'custom_function_call_return', f: fn, p: pc, i: pInfo });
     }
@@ -392,7 +417,7 @@ function syncFunctionCallsToToolbox() {
 
   // 移除旧的动态调用块
   funcCategory.contents = funcCategory.contents.filter(function(item) {
-    return item.type !== 'custom_function_call' && item.type !== 'custom_function_call_return';
+    return item.type !== 'custom_function_call_advance' && item.type !== 'custom_function_call_return';
   });
 
   if (funcNames.length > 0) {
@@ -424,7 +449,7 @@ function syncFunctionCallsToToolbox() {
         ? { id: funcVar.getId(), name: fname, type: 'FUNC' }
         : { name: fname, type: 'FUNC' };
       callBlocks.push({
-        kind: 'block', type: 'custom_function_call',
+        kind: 'block', type: 'custom_function_call_advance',
         fields: { FUNC_NAME: funcNameRef },
         extraState: { extraCount: paramCount, params: paramsCopy }
       });
@@ -505,10 +530,12 @@ var functionParamsMutator = {
     this.updateShape_();
     if (state.returnType) this.updateReturnInput_(state.returnType);
 
-    // 加载阶段创建变量（但不刷新工具箱，FINISHED_LOADING 负责）
+    // 加载阶段：只创建参数变量。
+    // 不创建/重命名 FUNC 变量！variables 段已创建了所有变量，
+    // 在此调用 ensureVariableWithId 会因 funcVarId 与实际变量 ID 不匹配
+    // 而触发 renameVariableById → Blockly 变量合并 → 导致 FieldVariable 指向错误变量。
+    // FUNC 变量的正确绑定由 FINISHED_LOADING 按名称匹配完成。
     if (this.workspace && !this.workspace.isFlyout) {
-      var funcName = this._funcLastName;
-      ensureVariableWithId(this.workspace, funcName, 'FUNC', this.funcVarId_);
       for (var pi = 0; pi < this.params_.length; pi++) {
         var pn = this.params_[pi].name;
         ensureVariableWithId(this.workspace, pn, '', this.paramVarIds_[pi]);
@@ -658,7 +685,15 @@ var functionCallSyncMutator = {
   saveExtraState: function() {
     var funcName = getCallBlockFuncName(this);
     var funcDef = window.customFunctionRegistry ? window.customFunctionRegistry[funcName] : null;
-    var result = { extraCount: this.extraCount_ || 0 };
+    var funcField = this.getField('FUNC_NAME');
+    var funcVar = funcField && typeof funcField.getVariable === 'function' ? funcField.getVariable() : null;
+    var result = {
+      extraCount: this.extraCount_ || 0,
+      funcVarId: this._funcVarIdForLoad
+        || (funcVar ? funcVar.getId() : null)
+        || this.getFieldValue('FUNC_NAME')
+        || null
+    };
     if (funcDef && funcDef.params && funcDef.params.length > 0) {
       result.params = funcDef.params.map(function(p) { return { type: p.type, name: p.name }; });
     }
@@ -666,6 +701,7 @@ var functionCallSyncMutator = {
   },
 
   loadExtraState: function(state) {
+    this._funcVarIdForLoad = state.funcVarId || this.getFieldValue('FUNC_NAME') || null;
     if (state.params && state.params.length > 0) {
       this._savedParams = state.params;
     }
@@ -792,7 +828,7 @@ Blockly.Extensions.registerMutator(
 );
 
 // 动态定义调用块（FieldVariable 引用 FUNC 类型变量，与 lib-dht 的 field_variable 模式一致）
-Blockly.Blocks['custom_function_call'] = {
+Blockly.Blocks['custom_function_call_advance'] = {
   init: function() {
     var ci = _getCallI18n();
     this.appendDummyInput()
@@ -833,29 +869,119 @@ Blockly.Blocks['custom_function_call_return'] = {
 // 注册图标
 if (typeof window !== 'undefined') {
   window.__ailyBlockDefinitionsMap = window.__ailyBlockDefinitionsMap || new Map();
-  window.__ailyBlockDefinitionsMap.set('custom_function_call', 'fa-light fa-function');
+  window.__ailyBlockDefinitionsMap.set('custom_function_call_advance', 'fa-light fa-function');
   window.__ailyBlockDefinitionsMap.set('custom_function_call_return', 'fa-light fa-function');
 }
 
-// ==================== ⑦ 唯一的事件监听器 ====================
+} // 结束防止重复加载的 if-else 块（⑦ 事件监听器需要每次重新绑定到新 workspace）
 
-if (typeof Blockly !== 'undefined') {
-  var workspace = Blockly.getMainWorkspace && Blockly.getMainWorkspace();
-  if (workspace) {
-    // 工具箱分类切换时，如果 dirty 就刷新
-    workspace.addChangeListener(function(event) {
-      if (event.type === Blockly.Events.TOOLBOX_ITEM_SELECT && _functionToolboxDirty) {
-        var tb = workspace.getToolbox();
-        if (tb) {
-          var sel = tb.getSelectedItem();
-          if (sel && (sel.name_ === '自定义函数' ||
-              (sel.toolboxItemDef_ && sel.toolboxItemDef_.contents &&
-               sel.toolboxItemDef_.contents.some(function(c) { return c.type === 'custom_function_def'; })))) {
-            syncFunctionCallsToToolbox();
-          }
-        }
+// ==================== 加载初始化（FINISHED_LOADING + 后期初始化 共用） ====================
+
+function _initFunctionLibOnLoad(workspace) {
+  _applyBlocklyMsgI18n();
+
+  var defs = workspace.getBlocksByType('custom_function_def', false);
+
+  // === Phase 1: 按名称查找/创建 FUNC 变量，避免 ID 不匹配触发 renameVariableById 导致变量合并 ===
+  var funcNameToVarId = {};
+  for (var di = 0; di < defs.length; di++) {
+    var defBlock = defs[di];
+    ensureFunctionVariableMetadata(defBlock);
+    defBlock._funcLastName = defBlock.getFieldValue('FUNC_NAME') || 'myFunction';
+    var fn = defBlock._funcLastName;
+
+    // 按名称查找 FUNC 变量（不按 funcVarId_, 因为 ABI 数据可能有重复/错误的 ID）
+    var funcVar = workspace.getVariable(fn, 'FUNC');
+    if (!funcVar) {
+      // 变量不存在，创建（用 DEF 块自身 ID 生成稳定的变量 ID）
+      funcVar = workspace.createVariable(fn, 'FUNC', defBlock.id + '::FUNC');
+    }
+    // 以实际变量 ID 为准，覆盖可能损坏的 funcVarId_
+    defBlock.funcVarId_ = funcVar.getId();
+    funcNameToVarId[fn] = funcVar.getId();
+
+    // 注册到 registry
+    if (defBlock.updateFunctionRegistry_) defBlock.updateFunctionRegistry_();
+
+    // 注册参数变量
+    var params = defBlock.params_ || [];
+    for (var pi = 0; pi < params.length; pi++) {
+      ensureVariableWithId(workspace, params[pi].name, '', defBlock.paramVarIds_ && defBlock.paramVarIds_[pi]);
+    }
+  }
+
+  // === Phase 2: 按函数名称重新绑定调用块（不依赖可能损坏的 funcVarId） ===
+  var calls = workspace.getBlocksByType('custom_function_call_advance', false)
+    .concat(workspace.getBlocksByType('custom_function_call_return', false));
+  for (var ci2 = 0; ci2 < calls.length; ci2++) {
+    var callBlock = calls[ci2];
+    callBlock.hasInitialized_ = true;
+
+    var funcField = callBlock.getField('FUNC_NAME');
+    if (!funcField) continue;
+
+    // 获取 FieldVariable 当前指向的变量名
+    var currentVar = typeof funcField.getVariable === 'function' ? funcField.getVariable() : null;
+    var callFuncName = currentVar ? currentVar.name : '';
+
+    // 如果当前名称在 registry 中，绑定到正确的变量 ID
+    if (callFuncName && funcNameToVarId[callFuncName]) {
+      var correctVarId = funcNameToVarId[callFuncName];
+      if (!currentVar || currentVar.getId() !== correctVarId) {
+        funcField.setValue(correctVarId);
       }
+      callBlock._funcVarIdForLoad = correctVarId;
+    }
+    // 否则尝试通过 _funcVarIdForLoad 找到正确的函数
+    else if (callBlock._funcVarIdForLoad) {
+      var storedVar = workspace.getVariableById(callBlock._funcVarIdForLoad);
+      if (storedVar && storedVar.type === 'FUNC' && funcNameToVarId[storedVar.name]) {
+        funcField.setValue(funcNameToVarId[storedVar.name]);
+        callBlock._funcVarIdForLoad = funcNameToVarId[storedVar.name];
+      }
+    }
 
+    if (callBlock.updateFromRegistry_) callBlock.updateFromRegistry_();
+  }
+
+  // === Phase 3: 清理 + 同步工具箱 ===
+  cleanupOrphanFunctionVariables(workspace);
+  syncFunctionCallsToToolbox();
+}
+
+// ==================== ⑦ 唯一的事件监听器（始终重新绑定） ====================
+
+// 移除旧 workspace 上的监听器引用，防止泄漏
+if (typeof window !== 'undefined' && window.__customFunctionChangeListener__) {
+  try {
+    var oldWs = window.__customFunctionListenerWorkspace__;
+    if (oldWs && typeof oldWs.removeChangeListener === 'function') {
+      oldWs.removeChangeListener(window.__customFunctionChangeListener__);
+    }
+  } catch(e) { /* workspace 可能已被 dispose */ }
+  window.__customFunctionChangeListener__ = null;
+  window.__customFunctionListenerWorkspace__ = null;
+}
+
+(function _attachCustomFunctionListener() {
+  if (typeof Blockly === 'undefined') return;
+  var workspace = Blockly.getMainWorkspace && Blockly.getMainWorkspace();
+  if (!workspace) {
+    // workspace 尚未创建（首次冷启动时序问题），延迟重试
+    setTimeout(_attachCustomFunctionListener, 200);
+    return;
+  }
+
+  // 重新绑定时重置同步状态（var 在 guard 内声明，重新加载时不会重新初始化）
+  _functionToolboxDirty = false;
+  _syncToolboxInProgress = false;
+  _lastSyncedToolboxKey = null;
+  if (_syncToolboxTimer) { clearTimeout(_syncToolboxTimer); _syncToolboxTimer = null; }
+
+  // 重新绑定时清空 registry，由 FINISHED_LOADING 重新注册
+  if (typeof window !== 'undefined') { window.customFunctionRegistry = {}; }
+
+  var _changeListener = function(event) {
       // 函数定义块被删除
       if (event.type === Blockly.Events.BLOCK_DELETE) {
         if (event.oldJson && event.oldJson.type === 'custom_function_def') {
@@ -885,15 +1011,10 @@ if (typeof Blockly !== 'undefined') {
             }
             // 注册函数名为 FUNC 类型变量（与 lib-dht 的 DHT 类型一致）
             ensureVariableWithId(workspace, block._funcLastName, 'FUNC', block.funcVarId_);
-            var createFn = block._funcLastName;
-            setTimeout(function() {
-              if (typeof addVariableToToolbox === 'function') {
-                addVariableToToolbox(block, createFn);
-              }
-            }, 100);
           }
 
-          if (block.type === 'custom_function_call' || block.type === 'custom_function_call_return') {
+          if (block.type === 'custom_function_call_advance' || block.type === 'custom_function_call_return') {
+            rebindCallBlockFuncField(block);
             var fn = getCallBlockFuncName(block);
             if (fn && block.updateFromRegistry_) {
               block.hasInitialized_ = true;
@@ -903,67 +1024,26 @@ if (typeof Blockly !== 'undefined') {
         }, 0);
       }
 
-      // 工作区加载完成
+      // 工作区加载完成（与变量库一致：同步处理，不用 setTimeout/requestAnimationFrame）
       if (event.type === Blockly.Events.FINISHED_LOADING) {
-        setTimeout(function() {
-          _applyBlocklyMsgI18n();
-
-          // 注册所有函数定义到 registry
-          var defs = workspace.getBlocksByType('custom_function_def', false);
-          for (var di = 0; di < defs.length; di++) {
-            var defBlock = defs[di];
-            ensureFunctionVariableMetadata(defBlock);
-            defBlock._funcLastName = defBlock.getFieldValue('FUNC_NAME') || 'myFunction';
-            if (defBlock.updateFunctionRegistry_) defBlock.updateFunctionRegistry_();
-            // 注册函数名为 FUNC 类型变量（与 lib-dht 的 DHT 类型一致）
-            var fn = defBlock._funcLastName;
-            if (fn) ensureVariableWithId(workspace, fn, 'FUNC', defBlock.funcVarId_);
-            // 注册参数变量
-            var params = defBlock.params_ || [];
-            for (var pi = 0; pi < params.length; pi++) {
-              ensureVariableWithId(workspace, params[pi].name, '', defBlock.paramVarIds_ && defBlock.paramVarIds_[pi]);
-            }
-          }
-
-          // 刷新所有调用块（FieldVariable 通过变量 ID 自动关联，只需同步参数）
-          var calls = workspace.getBlocksByType('custom_function_call', false)
-            .concat(workspace.getBlocksByType('custom_function_call_return', false));
-          for (var ci2 = 0; ci2 < calls.length; ci2++) {
-            var callBlock = calls[ci2];
-            callBlock.hasInitialized_ = true;
-            if (callBlock.updateFromRegistry_) callBlock.updateFromRegistry_();
-            if (callBlock.render) callBlock.render();
-          }
-
-          // 清理加载期 FieldVariable 自动补出来的孤儿 FUNC 变量。
-          cleanupOrphanFunctionVariables(workspace);
-
-          // 同步工具箱
-          syncFunctionCallsToToolbox();
-
-          // 延迟添加函数名+参数变量到工具箱
-          requestAnimationFrame(function() {
-            for (var di2 = 0; di2 < defs.length; di2++) {
-              var db = defs[di2];
-              // 函数名添加到变量工具箱
-              var fn2 = db.getFieldValue('FUNC_NAME');
-              if (fn2 && typeof addVariableToToolbox === 'function') {
-                addVariableToToolbox(db, fn2);
-              }
-              // 参数添加到变量工具箱
-              var pp = db.params_ || [];
-              for (var pi2 = 0; pi2 < pp.length; pi2++) {
-                if (typeof addVariableToToolbox === 'function') {
-                  addVariableToToolbox(db, pp[pi2].name);
-                }
-              }
-            }
-          });
-        }, 100);
+        _initFunctionLibOnLoad(workspace);
       }
-    });
+  };
+
+  // 注册监听器并保存引用，以便下次脚本加载时移除
+  workspace.addChangeListener(_changeListener);
+  if (typeof window !== 'undefined') {
+    window.__customFunctionChangeListener__ = _changeListener;
+    window.__customFunctionListenerWorkspace__ = workspace;
   }
-}
+
+  // 后期初始化：如果 FINISHED_LOADING 已在监听器绑定前触发（延迟重试场景），
+  // 手动执行一次与 FINISHED_LOADING 相同的初始化逻辑（同步，与变量库一致）
+  var defs = workspace.getBlocksByType('custom_function_def', false);
+  if (defs.length > 0 && Object.keys(window.customFunctionRegistry || {}).length === 0) {
+    _initFunctionLibOnLoad(workspace);
+  }
+})();
 
 // ==================== ⑧ 代码生成器 ====================
 
@@ -979,15 +1059,7 @@ Arduino.forBlock['custom_function_def'] = function(block) {
     // 初次注册（函数名注册为变量 + registry，与 lib-dht 一致）
     if (block.workspace && !block.workspace.isFlyout) {
       block.updateFunctionRegistry_();
-      scheduleSyncFunctionCallsToToolbox();
       ensureVariableWithId(block.workspace, block._funcLastName, 'FUNC', block.funcVarId_);
-      var initFuncName = block._funcLastName;
-      var selfBlock = block;
-      setTimeout(function() {
-        if (typeof addVariableToToolbox === 'function') {
-          addVariableToToolbox(selfBlock, initFuncName);
-        }
-      }, 100);
     }
 
     // 函数名 onFinishEditing_（与 lib-dht 的 renameVariableInBlockly 模式完全一致）
@@ -1061,7 +1133,7 @@ Arduino.forBlock['custom_function_return_void'] = function(block) {
 };
 
 // 函数调用（无返回值）
-Arduino.forBlock['custom_function_call'] = function(block) {
+Arduino.forBlock['custom_function_call_advance'] = function(block) {
   var originalName = getCallBlockFuncName(block) || 'myFunction';
   if (!originalName) return '// 未选择函数\n';
   var funcName = sanitizeName(originalName);
@@ -1184,5 +1256,3 @@ Arduino.forBlock['procedures_ifreturn'] = function(block) {
   code += '}\n';
   return code;
 };
-
-} // 结束防止重复加载的 if-else 块
