@@ -171,6 +171,34 @@ jobs:
           # 清理临时配置文件
           rm .npmrc
 
+      - name: Notify cache bump for Registry 2
+        if: steps.check-update-all.outputs.should_skip != 'true'
+        env:
+          NOTIFY_URL: ${{ secrets.NOTIFY_URL_2 }}
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN_2 }}
+        run: |
+          if [ -z "$NOTIFY_URL" ] || [ -z "$NOTIFY_TOKEN" ]; then
+            echo "NOTIFY_URL_2 or NOTIFY_TOKEN_2 not set, skipping."
+            exit 0
+          fi
+          echo "Sending POST request to $NOTIFY_URL"
+          set +e
+          HTTP_STATUS=$(curl -s -o /tmp/notify_response_2.txt -w "%{http_code}" --max-time 30 \
+            -X POST "$NOTIFY_URL" \
+            -H "Authorization: Bearer $NOTIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          CURL_EXIT=$?
+          set -e
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::warning::Notification (Registry 2) request failed (curl exit code $CURL_EXIT)"
+          elif [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "Notification (Registry 2) sent successfully (HTTP $HTTP_STATUS)"
+          else
+            echo "::warning::Notification (Registry 2) failed with HTTP status $HTTP_STATUS"
+            cat /tmp/notify_response_2.txt || true
+          fi
+
       - name: Publish to Default Registry
         if: steps.check-update-all.outputs.should_skip != 'true'
         env:
@@ -193,6 +221,21 @@ jobs:
               sleep_seconds=$((sleep_seconds * 2))
             done
           }
+          export -f retry_with_backoff
+
+          mark_manual_publish() {
+            local package_name="$1"
+            local package_version="$2"
+            local package_dir="$3"
+
+            echo "::warning::Default registry publish timed out after 5 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
+            {
+              echo "### Manual publish required"
+              echo "- Package: ${package_name}@${package_version}"
+              echo "- Directory: ${package_dir}"
+              echo "- Reason: publish to default registry timed out after 5 minutes"
+            } >> "$GITHUB_STEP_SUMMARY"
+          }
 
           cd ${{ matrix.package }}
           # 确保清理掉可能残留的 .npmrc
@@ -211,7 +254,45 @@ jobs:
           fi
           
           # 发布
-          retry_with_backoff 5 5 npm publish --access public
+          set +e
+          timeout 5m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -ne 0 ]; then
+            if [ "$STATUS" -eq 124 ]; then
+              mark_manual_publish "$PACKAGE_NAME" "$CURRENT_VERSION" "${{ matrix.package }}"
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
+
+      - name: Notify cache bump
+        if: steps.check-update-all.outputs.should_skip != 'true'
+        env:
+          NOTIFY_URL: ${{ secrets.NOTIFY_URL }}
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN }}
+        run: |
+          if [ -z "$NOTIFY_URL" ] || [ -z "$NOTIFY_TOKEN" ]; then
+            echo "NOTIFY_URL or NOTIFY_TOKEN not set, skipping."
+            exit 0
+          fi
+          echo "Sending POST request to $NOTIFY_URL"
+          set +e
+          HTTP_STATUS=$(curl -s -o /tmp/notify_response.txt -w "%{http_code}" --max-time 30 \
+            -X POST "$NOTIFY_URL" \
+            -H "Authorization: Bearer $NOTIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          CURL_EXIT=$?
+          set -e
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::warning::Notification request failed (curl exit code $CURL_EXIT)"
+          elif [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "Notification sent successfully (HTTP $HTTP_STATUS)"
+          else
+            echo "::warning::Notification failed with HTTP status $HTTP_STATUS"
+            cat /tmp/notify_response.txt || true
+          fi
   
   build-and-publish-all:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/deploy' }}
@@ -348,6 +429,34 @@ jobs:
           
           # 清理
           rm .npmrc
+
+      - name: Notify cache bump for Registry 2
+        if: steps.check-update-all.outputs.should_run == 'true'
+        env:
+          NOTIFY_URL: ${{ secrets.NOTIFY_URL_2 }}
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN_2 }}
+        run: |
+          if [ -z "$NOTIFY_URL" ] || [ -z "$NOTIFY_TOKEN" ]; then
+            echo "NOTIFY_URL_2 or NOTIFY_TOKEN_2 not set, skipping."
+            exit 0
+          fi
+          echo "Sending POST request to $NOTIFY_URL"
+          set +e
+          HTTP_STATUS=$(curl -s -o /tmp/notify_response_2.txt -w "%{http_code}" --max-time 30 \
+            -X POST "$NOTIFY_URL" \
+            -H "Authorization: Bearer $NOTIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          CURL_EXIT=$?
+          set -e
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::warning::Notification (Registry 2) request failed (curl exit code $CURL_EXIT)"
+          elif [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "Notification (Registry 2) sent successfully (HTTP $HTTP_STATUS)"
+          else
+            echo "::warning::Notification (Registry 2) failed with HTTP status $HTTP_STATUS"
+            cat /tmp/notify_response_2.txt || true
+          fi
       
       - name: Publish All to Default Registry
         if: steps.check-update-all.outputs.should_run == 'true'
@@ -372,6 +481,19 @@ jobs:
               sleep_seconds=$((sleep_seconds * 2))
             done
           }
+          export -f retry_with_backoff
+
+          MANUAL_LOG="$RUNNER_TEMP/manual-default-publish.txt"
+          : > "$MANUAL_LOG"
+
+          mark_manual_publish() {
+            local package_name="$1"
+            local package_version="$2"
+            local package_dir="$3"
+
+            echo "::warning::Default registry publish timed out after 5 minutes for ${package_name}@${package_version} (${package_dir}). Please publish it manually."
+            printf '%s\n' "${package_name}@${package_version} | ${package_dir} | publish to default registry timed out after 5 minutes" >> "$MANUAL_LOG"
+          }
 
           publish_default_one() {
             local dir="$1"
@@ -388,7 +510,17 @@ jobs:
                 sleep 5
               fi
 
-              retry_with_backoff 5 5 npm publish --access public
+              set +e
+              timeout 5m bash -lc 'retry_with_backoff 5 5 npm publish --access public'
+              STATUS=$?
+              set -e
+              if [ "$STATUS" -ne 0 ]; then
+                if [ "$STATUS" -eq 124 ]; then
+                  mark_manual_publish "$PACKAGE_NAME" "$CURRENT_VERSION" "$dir"
+                  exit 0
+                fi
+                exit "$STATUS"
+              fi
             )
           }
 
@@ -437,6 +569,43 @@ jobs:
           if [ "$FAIL" -ne 0 ]; then
             echo "One or more package publishes failed on default registry"
             exit 1
+          fi
+
+          if [ -s "$MANUAL_LOG" ]; then
+            {
+              echo "### Manual publish required"
+              while IFS= read -r line; do
+                echo "- $line"
+              done < "$MANUAL_LOG"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Notify cache bump
+        if: steps.check-update-all.outputs.should_run == 'true'
+        env:
+          NOTIFY_URL: ${{ secrets.NOTIFY_URL }}
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN }}
+        run: |
+          if [ -z "$NOTIFY_URL" ] || [ -z "$NOTIFY_TOKEN" ]; then
+            echo "NOTIFY_URL or NOTIFY_TOKEN not set, skipping."
+            exit 0
+          fi
+          echo "Sending POST request to $NOTIFY_URL"
+          set +e
+          HTTP_STATUS=$(curl -s -o /tmp/notify_response.txt -w "%{http_code}" --max-time 30 \
+            -X POST "$NOTIFY_URL" \
+            -H "Authorization: Bearer $NOTIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          CURL_EXIT=$?
+          set -e
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::warning::Notification request failed (curl exit code $CURL_EXIT)"
+          elif [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "Notification sent successfully (HTTP $HTTP_STATUS)"
+          else
+            echo "::warning::Notification failed with HTTP status $HTTP_STATUS"
+            cat /tmp/notify_response.txt || true
           fi
 
   genJson-and-upload:

@@ -11,8 +11,8 @@ Arduino 自定义函数库，提供函数定义、调用、参数管理和返回
 | 块类型 | 连接 | 参数 (args0 顺序) | ABS 格式 | 生成代码 |
 |--------|------|-------------------|----------|----------|
 | `custom_function_def` | Hat（顶层） | FUNC_NAME(field_input), RETURN_TYPE(dropdown), [TYPE(dropdown), NAME(field_input)]×N(mutator), STACK(input_statement), [RETURN(input_value)] | `custom_function_def("myFunc", int, int, "a", float, "b")` | `int myFunc(int a, float b) { ... }` |
-| `custom_function_call` | 语句块 | FUNC_NAME(field_variable/FUNC), INPUT0..N(input_value) | `custom_function_call($myFunc, math_number(10))` | `myFunc(10);` |
-| `custom_function_call_return` | 值块 | FUNC_NAME(field_variable/FUNC), INPUT0..N(input_value) | `custom_function_call_return($myFunc, math_number(10))` | `myFunc(10)` |
+| `custom_function_call_advance` | 语句块 | FUNC_NAME(field_variable/FUNC), INPUT0..N(input_value) | `custom_function_call_advance($myFunc, math_number(10))` | `myFunc(10);` |
+| `custom_function_call_return_advance` | 值块 | FUNC_NAME(field_variable/FUNC), INPUT0..N(input_value) | `custom_function_call_return_advance($myFunc, math_number(10))` | `myFunc(10)` |
 | `custom_function_return` | 语句块 | VALUE(input_value) | `custom_function_return(math_number(0))` | `return 0;` |
 | `custom_function_return_void` | 语句块 | (无参数) | `custom_function_return_void()` | `return;` |
 
@@ -26,11 +26,11 @@ custom_function_def("funcName", RETURN_TYPE, TYPE, "param1", TYPE, "param2")
     @RETURN: returnValue    // 仅当 RETURN_TYPE 非 void 时使用
 ```
 
-`custom_function_call` / `custom_function_call_return` 自动从 registry 同步参数数量与标签，FUNC_NAME 为 FUNC 类型变量（用 `$funcName` 引用），ABS 中按位置传参：
+`custom_function_call_advance` / `custom_function_call_return_advance` 自动从 registry 同步参数数量与标签，FUNC_NAME 为 FUNC 类型变量（用 `$funcName` 引用），ABS 中按位置传参：
 
 ```
-custom_function_call($funcName, arg0, arg1)
-custom_function_call_return($funcName, arg0, arg1)
+custom_function_call_advance($funcName, arg0, arg1)
+custom_function_call_return_advance($funcName, arg0, arg1)
 ```
 
 ## ABS 示例
@@ -44,7 +44,7 @@ arduino_setup()
     serial_begin(Serial, 9600)
 
 arduino_loop()
-    custom_function_call($sayHello)
+    custom_function_call_advance($sayHello)
     time_delay(math_number(2000))
 ```
 
@@ -57,9 +57,9 @@ arduino_setup()
     pin_mode(math_number(13), OUTPUT)
 
 arduino_loop()
-    custom_function_call($setLED, math_number(13), math_number(1))
+    custom_function_call_advance($setLED, math_number(13), math_number(1))
     time_delay(math_number(1000))
-    custom_function_call($setLED, math_number(13), math_number(0))
+    custom_function_call_advance($setLED, math_number(13), math_number(0))
     time_delay(math_number(1000))
 ```
 
@@ -72,7 +72,7 @@ arduino_setup()
     serial_begin(Serial, 9600)
 
 arduino_loop()
-    serial_println(Serial, custom_function_call_return($addNumbers, math_number(3), math_number(5)))
+    serial_println(Serial, custom_function_call_return_advance($addNumbers, math_number(3), math_number(5)))
     time_delay(math_number(1000))
 ```
 
@@ -87,7 +87,7 @@ custom_function_def("checkSensor", bool, int, "pin")
 
 arduino_loop()
     controls_if()
-        @IF0: custom_function_call_return($checkSensor, math_number(0))
+        @IF0: custom_function_call_return_advance($checkSensor, math_number(0))
         @DO0:
             serial_println(Serial, text("Sensor triggered"))
 ```
@@ -113,7 +113,7 @@ custom_function_def("processData", void, int, "value")
 
 1. **顶层放置**: `custom_function_def` 必须放在工作区顶层（不能在 `arduino_setup` / `arduino_loop` 内），生成为独立的 C++ 函数
 2. **参数变量引用**: 参数自动注册为工作区变量，函数体内使用 `variables_get($paramName)` 引用
-3. **调用块类型**: 无需返回值用 `custom_function_call`（语句块），需要返回值用 `custom_function_call_return`（值块）
+3. **调用块类型**: 无需返回值用 `custom_function_call_advance`（语句块），需要返回值用 `custom_function_call_return_advance`（值块）
 4. **返回值插槽**: RETURN_TYPE 非 void 时，函数定义块底部出现 `@RETURN:` 值输入槽；函数体内提前返回用 `custom_function_return(value)`；void 提前退出用 `custom_function_return_void()`
 5. **函数名唯一**: 同一工作区内函数名不得重复，重复时自动追加数字后缀
 6. **中文函数名**: 支持中文命名，代码生成时自动转为拼音标识符
