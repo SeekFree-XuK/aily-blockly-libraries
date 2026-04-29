@@ -23,21 +23,35 @@
     ]
   },
   "k10_get_strength": {
-    "message0": "%1 Wert lesen",
-    "tooltip": "K10 onboard Sensorwert lesen",
+    "message0": "Lichtstärke-Wert lesen",
+    "tooltip": "K10 onboard Lichtsensorwert lesen"
+  },
+  "k10_aht20_measure": {
+    "message0": "AHT20 Messung starten CRC %1",
+    "tooltip": "Eine AHT20-Messung starten; gibt true zurück wenn fertig, dann Temperatur/Feuchte lesen",
     "args0": [
       {
         "options": [
-          [
-            "Lichtstärke",
-            "light"
-          ],
-          [
-            "Lautstärke",
-            "sound"
-          ]
+          ["an", "true"],
+          ["aus", "false"]
         ]
       }
     ]
+  },
+  "k10_aht20_get_temperature": {
+    "message0": "AHT20 Temperatur lesen %1",
+    "tooltip": "Temperatur vom AHT20-Sensor lesen (zuerst Messung starten)",
+    "args0": [
+      {
+        "options": [
+          ["Celsius(℃)", "C"],
+          ["Fahrenheit(℉)", "F"]
+        ]
+      }
+    ]
+  },
+  "k10_aht20_get_humidity": {
+    "message0": "AHT20 relative Luftfeuchte lesen(%RH)",
+    "tooltip": "Relative Luftfeuchte vom AHT20-Sensor lesen (zuerst Messung starten)"
   }
 }
